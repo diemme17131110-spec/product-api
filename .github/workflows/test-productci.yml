@@ -1,0 +1,50 @@
+name: Product API CI
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test-product-api:
+    runs-on: ubuntu-latest
+
+    services:
+      mongodb:
+        image: mongo:7
+        ports:
+          - 27017:27017
+        options: >-
+          --health-cmd="mongosh --eval \"db.adminCommand('ping')\""
+          --health-interval=10s
+          --health-timeout=5s
+          --health-retries=5
+
+    env:
+      PORT: 3000
+      MONGODB_URI: mongodb://localhost:27017/productdb
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Start Product API
+        run: |
+          npm start &
+          sleep 10
+
+      - name: Check Health Endpoint
+        run: |
+          curl --fail http://localhost:3000/health
+
+      - name: Build Docker Image
+        run: docker build -t product-api .

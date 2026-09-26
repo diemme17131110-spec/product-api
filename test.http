@@ -1,0 +1,24 @@
+
+### CREATE PRODUCT
+POST http://localhost:3000/api/products
+Content-Type: application/json
+
+{
+  "pid": "P001",
+  "pname": "Laptop",
+  "price": 15000000,
+  "quantity": 10
+}
+
+### GET ALL PRODUCTS
+GET http://localhost:3000/api/products
+### GET ONE PRODUCT
+GET http://localhost:3000/api/products/6ab79026731ccbc6db16ebb6
+### UPDATE PRODUCT
+PUT http://localhost:3000/api/products/6ab79026731ccbc6db16ebb6
+Content-Type: application/json
+
+{
+  "price": 18000000,
+  "quantity": 8
+}
