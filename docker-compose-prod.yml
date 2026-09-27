@@ -1,0 +1,31 @@
+
+services:
+  nammongodb:
+    image: mongo:7
+    container_name: nammongodb-prod
+    ports:
+      - "27018:27017"
+    restart: always
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  product-api:
+    image: diemme111/product-api:latest
+    container_name: product-api-prod
+    ports:
+      - "3001:3000"
+    environment:
+      PORT: 3000
+      MONGODB_URI: mongodb://nammongodb-prod:27017/productdb
+    depends_on:
+      nammongodb:
+        condition: service_healthy
+    restart: always
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:3000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
