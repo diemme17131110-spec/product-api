@@ -1,0 +1,41 @@
+name: Product API Production CI
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+jobs:
+  production-test:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout source
+        uses: actions/checkout@v4
+
+      - name: Build Product API Image
+        run: docker build -t product-api .
+
+      - name: Create Docker Network
+        run: docker network create product-network
+
+      - name: Run MongoDB
+        run: |
+          docker run -d             --name nammongodb             --network product-network             mongo:7
+
+      - name: Run Product API
+        run: |
+          docker run -d             --name product-api             --network product-network             -p 3000:3000             -e PORT=3000             -e MONGODB_URI=mongodb://nammongodb:27017/productdb             product-api
+
+      - name: Wait for API
+        run: sleep 15
+
+      - name: Health Check
+        run: curl --fail http://localhost:3000/health
+
+      - name: Cleanup
+        if: always()
+        run: |
+          docker rm -f product-api || true
+          docker rm -f nammongodb || true
+          docker network rm product-network || true
